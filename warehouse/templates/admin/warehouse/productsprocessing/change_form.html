@@ -1,0 +1,24 @@
+{% extends "admin/change_form.html" %}
+
+<!-- LOADING -->
+{% load admin_static i18n admin_modify admin_urls grp_tags %}
+
+<!-- OBJECT TOOLS -->
+{% block object-tools %}
+    {% if change %}
+        {% if not is_popup %}
+            <ul class="grp-object-tools">
+                {% block object-tools-items %}
+                    {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+                    {% if not original.closed %}
+                        {% if original.clean_for_processing %}
+                            <li><a href="{% url 'warehouse_productsprocessing_close' original.pk %}">{% blocktrans with "Close" as name %}{{ name }}{% endblocktrans %}</a></li>
+                        {% endif %}
+                    {% endif %}
+                    <li><a href="{% add_preserved_filters history_url %}">{% trans "History" %}</a></li>
+                    {% if has_absolute_url %}<li><a href="{% url 'admin:view_on_site' content_type_id original.pk %}" class="grp-state-focus" target="_blank">{% trans "View on site" %}</a></li>{% endif%}
+                {% endblock %}
+            </ul>
+        {% endif %}
+    {% endif %}
+{% endblock %}

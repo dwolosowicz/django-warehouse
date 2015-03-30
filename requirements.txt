@@ -1,0 +1,10 @@
+diff-match-patch==20121119
+Django==1.7.7
+django-admin-extend==0.0.3
+django-extensions==1.5.2
+django-grappelli==2.6.3
+django-import-export==0.2.6
+django-safedelete==0.2.1
+django-wkhtmltopdf==2.0.2
+six==1.9.0
+tablib==0.10.0
