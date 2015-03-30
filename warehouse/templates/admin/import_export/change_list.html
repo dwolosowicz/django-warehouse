@@ -1,9 +1,11 @@
 {% extends "admin/change_list.html" %}
+{% load i18n %}
 
 {# Original template renders object-tools only when has_add_permission is True. #}
 {# This hack allows sub templates to add to object-tools #}
 {% block object-tools %}
   <ul class="grp-object-tools">
+    <li><a href="{% url "warehouse_productsprocessing_review" %}" class="add_link">{% trans "Monthly Review" %}</a></li>
     {% block object-tools-items %}
       {% if has_add_permission %}
         {{ block.super }}

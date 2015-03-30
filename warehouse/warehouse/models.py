@@ -5,17 +5,6 @@ from safedelete import safedelete_mixin_factory, SOFT_DELETE
 from django_extensions.db import fields
 
 
-class Currency(models.Model):
-    name = models.CharField(max_length=32)
-    slug = models.CharField(max_length=6)
-
-    created = fields.CreationDateTimeField()
-    modified = fields.ModificationDateTimeField()
-
-    def __str__(self):
-        return "{} ({})".format(self.slug, self.name)
-
-
 class Warehouse(models.Model):
     name = models.CharField(max_length=255)
 
@@ -51,7 +40,6 @@ class Product(SafeDeleteMixin):
     quantity = models.DecimalField(max_digits=10, decimal_places=3, default='0.00')
 
     price = models.DecimalField(max_digits=10, decimal_places=2, default='0.00')
-    currency = models.ForeignKey(Currency, on_delete=models.DO_NOTHING)
 
     created = fields.CreationDateTimeField()
     modified = fields.ModificationDateTimeField()
@@ -60,7 +48,7 @@ class Product(SafeDeleteMixin):
         return "{} {}".format(self.quantity, self.unit.slug)
 
     def cost(self):
-        return "{} {}".format(self.price, self.currency.slug)
+        return "{} PLN".format(self.price)
 
     def reservation_amount(self):
         return "{} {}".format(self.reservation(), self.unit.slug)
@@ -75,7 +63,23 @@ class Product(SafeDeleteMixin):
         return self.name
 
 
+class ProductsProcessingManager(models.Manager):
+    def reviews(self):
+        return set([(d['created'].year,d['created'].month) for d in ProductsProcessing.objects.values('created')])
+
+    def __get_review(self, year, month, op_type):
+        return Product.objects.raw("SELECT p.id, p.name, SUM(ppn.quantity_change) AS `change` FROM warehouse_product AS p LEFT JOIN warehouse_productprocessingnode AS ppn ON ppn.product_id = p.id LEFT JOIN warehouse_productsprocessing AS pp ON pp.id = ppn.processing_id WHERE pp.type = %s AND YEAR(pp.created) = %s AND MONTH(pp.created) = %s GROUP BY p.name ORDER BY p.name ASC", [op_type, year, month])
+
+
+    def review_for_month(self, year, month):
+        return { 
+                'admissions': self.__get_review(year, month, ProductsProcessing.PROCESSING_ADMISSION),
+                'releases': self.__get_review(year, month, ProductsProcessing.PROCESSING_RELEASE)
+            }
+
 class ProductsProcessing(SafeDeleteMixin):
+    objects = ProductsProcessingManager()
+
     PROCESSING_RELEASE = 'RS'
     PROCESSING_ADMISSION = 'AN'
 
@@ -99,7 +103,7 @@ class ProductsProcessing(SafeDeleteMixin):
 
     def total_cost_amount(self):
         if self.nodes.all().count() > 0:
-            return "{} {}".format(self.total_cost(), self.nodes.all()[0].currency())
+            return "{} PLN".format(self.total_cost())
         else:
             return "(None)"
 
@@ -158,9 +162,6 @@ class ProductProcessingNode(models.Model):
 
     def total_cost(self):
         return Context().multiply(Decimal(self.quantity_change), Decimal(self.custom_price or self.product.price))
-
-    def currency(self):
-        return self.product.currency.slug
 
     def clean_for_processing(self):
         if self.is_released():

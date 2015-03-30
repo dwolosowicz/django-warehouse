@@ -1,4 +1,4 @@
-class ReadOnlyEditFieldsMixin():
+class ReadOnlyEditFieldsMixin(object):
     """
     Mixing allows the user to specify fields that will be marked as read only in change view
     """
@@ -10,7 +10,7 @@ class ReadOnlyEditFieldsMixin():
         return self.readonly_fields
 
 
-class ModedInlinesMixin():
+class ModedInlinesMixin(object):
     """
     Mixin is responsible for creating two variables available to the user: change_only_inlines and create_only_inlines
     which allow to specify inline admins for change or create views only

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monthly Review</title>
+</head>
+<body>
+
+<table>
+    <tr>
+        <th>Product</th>
+        <th>Admissions</th>
+    </tr>
+
+    {% for admission in processings.admissions %}
+    <tr>
+        <td>{{ admission.name }}</td>
+        <td>+ {{ admission.change }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr/>
+
+<table>
+    <tr>
+        <th>Product</th>
+        <th>Releases</th>
+    </tr>
+
+    {% for release in processings.releases %}
+    <tr>
+        <td>{{ release.name }}</td>
+        <td>- {{ release.change }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>

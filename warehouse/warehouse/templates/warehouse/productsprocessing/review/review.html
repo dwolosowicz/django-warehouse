@@ -1,0 +1,18 @@
+{% extends "admin/change_form.html" %}
+
+{% load i18n %}
+
+{% block breadcrumbs %}
+    <ul>
+        <li><a href="{% url 'admin:index' %}">{% trans "Home" %}</a></li>
+        <li><a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a></li>
+        <li><a href="{% url 'admin:warehouse_productsprocessing_changelist'%}">Products processing</a></li>
+        <li>Monthly Review</li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    {% for review in reviews %}
+    <a href="{% url 'warehouse_productsprocessing_review_pdf' review.date %}">{{ review.text }}</a>
+    {% endfor %}
+{% endblock %}
