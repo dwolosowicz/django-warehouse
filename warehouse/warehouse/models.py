@@ -4,7 +4,6 @@ from django.db import models
 from safedelete import safedelete_mixin_factory, SOFT_DELETE
 from django_extensions.db import fields
 
-
 class Warehouse(models.Model):
     name = models.CharField(max_length=255)
 
@@ -29,10 +28,7 @@ class Unit(models.Model):
         return "{} ({})".format(self.slug, self.name)
 
 
-SafeDeleteMixin = safedelete_mixin_factory(SOFT_DELETE)
-
-
-class Product(SafeDeleteMixin):
+class Product(models.Model):
     warehouses = models.ManyToManyField(Warehouse)
 
     name = models.CharField(max_length=255)
@@ -65,7 +61,7 @@ class Product(SafeDeleteMixin):
 
 class ProductsProcessingManager(models.Manager):
     def reviews(self):
-        return set([(d['created'].year,d['created'].month) for d in ProductsProcessing.objects.values('created')])
+        return set([(d['created'].year, d['created'].month) for d in ProductsProcessing.objects.values('created')])
 
     def __get_review(self, year, month, op_type):
         return Product.objects.raw("SELECT p.id, p.name, SUM(ppn.quantity_change) AS `change` FROM warehouse_product AS p LEFT JOIN warehouse_productprocessingnode AS ppn ON ppn.product_id = p.id LEFT JOIN warehouse_productsprocessing AS pp ON pp.id = ppn.processing_id WHERE pp.type = %s AND YEAR(pp.created) = %s AND MONTH(pp.created) = %s GROUP BY p.name ORDER BY p.name ASC", [op_type, year, month])
@@ -77,7 +73,7 @@ class ProductsProcessingManager(models.Manager):
                 'releases': self.__get_review(year, month, ProductsProcessing.PROCESSING_RELEASE)
             }
 
-class ProductsProcessing(SafeDeleteMixin):
+class ProductsProcessing(models.Model):
     objects = ProductsProcessingManager()
 
     PROCESSING_RELEASE = 'RS'
@@ -110,7 +106,7 @@ class ProductsProcessing(SafeDeleteMixin):
     total_cost_amount.short_description = "Total"
 
     def total_cost(self):
-        return sum([ppn.total_cost() for ppn in self.nodes.all()])
+        return "{0:.2f}".format(sum([ppn.total_cost() for ppn in self.nodes.all()]))
 
     def is_release(self):
         return self.type == self.PROCESSING_RELEASE
@@ -164,6 +160,7 @@ class ProductProcessingNode(models.Model):
         return Context().multiply(Decimal(self.quantity_change), Decimal(self.custom_price or self.product.price))
 
     def clean_for_processing(self):
+        "Check whether the node is eglible for processing. If Processing is Release, check if the quality allows it. If not, return True. Admission does not need to be checked for quantity."
         if self.is_released():
             return self.product.quantity - self.quantity_change >= 0
         else:

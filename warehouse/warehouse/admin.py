@@ -6,15 +6,16 @@ from import_export.admin import ExportMixin
 from .models import Warehouse, Product, Unit, ProductsProcessing, ProductProcessingNode 
 from .admin_mixins import ModedInlinesMixin, ReadOnlyEditFieldsMixin
 
+import reversion
+
 admin.site.register(Unit)
 
 
 @admin.register(Product)
-class ProductAdmin(ReadOnlyEditFieldsMixin, admin.ModelAdmin):
+class ProductAdmin(ReadOnlyEditFieldsMixin, reversion.VersionAdmin):
     fields = ('warehouses', 'name', 'price', 'quantity', 'unit')
     list_display = ('name', 'cost', 'amount', 'reservation_amount')
     list_editable = ('name',)
-    exclude = ('deleted',)
 
     readonly_edit_fields = ('quantity', 'unit')
 
@@ -61,12 +62,12 @@ class ProductProcessingResource(resources.ModelResource):
 
 
 @admin.register(ProductsProcessing)
-class ProductsProcessingAdmin(ExportMixin, ModedInlinesMixin, admin.ModelAdmin):
+class ProductsProcessingAdmin(ExportMixin, ModedInlinesMixin, reversion.VersionAdmin):
     resource_class = ProductProcessingResource
 
     list_display = ('closed', 'type', 'name', 'created', 'total_cost_amount')
     list_display_links = ('name',)
-    exclude = ('closed', 'deleted')
+    exclude = ('closed',)
     search_fields = ('name', 'nodes__product__name')
     list_filter = ('type', 'created', 'closed')
 

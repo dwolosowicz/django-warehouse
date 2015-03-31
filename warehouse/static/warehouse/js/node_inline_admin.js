@@ -11,7 +11,7 @@
 
                     var price = custom_price || product.price;
 
-                    $('.total_cost div', $row).html(price * quantity_change);
+                    $('.total_cost div', $row).html((price * quantity_change).toFixed(2));
                     $('.currency div', $row).html(product.currency.slug);
                 })
             }

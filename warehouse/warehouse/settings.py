@@ -41,7 +41,8 @@ THIRDPARTY_APPS = [
     'grappelli',
     'import_export',
     'wkhtmltopdf',
-    'django_extensions'
+    'django_extensions',
+    'reversion'
 ]
 
 LOCAL_APPS = [
@@ -107,3 +108,5 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 TEMPLATE_DIRS = (os.path.join(BASE_DIR, 'templates'),)
+
+GRAPPELLI_ADMIN_TITLE="Warehouse"
