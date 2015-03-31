@@ -159,6 +159,9 @@ class ProductProcessingNode(models.Model):
     def total_cost(self):
         return Context().multiply(Decimal(self.quantity_change), Decimal(self.custom_price or self.product.price))
 
+    def total_cost_amount(self):
+        return "{0:.2f}".format(Context().multiply(Decimal(self.quantity_change), Decimal(self.custom_price or self.product.price)))
+
     def clean_for_processing(self):
         "Check whether the node is eglible for processing. If Processing is Release, check if the quality allows it. If not, return True. Admission does not need to be checked for quantity."
         if self.is_released():
