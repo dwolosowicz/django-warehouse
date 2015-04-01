@@ -4,10 +4,13 @@ from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.shortcuts import redirect, get_object_or_404, render
+from django.db import transaction
 from warehouse.models import ProductsProcessing, Product
 from warehouse.forms import ReviewForm
 
 from wkhtmltopdf.views import PDFTemplateView
+
+import reversion
 
 
 def _redirect_to_with_error(request, url_name, object_id, message):
@@ -39,8 +42,11 @@ def productsprocessing_close(request, object_id):
                                         "You cannot close Products Processing Entry which has been already closed")
 
     if products_processing.clean_for_processing():
-        products_processing.close()
-        products_processing.save()
+        with transaction.atomic(), reversion.create_revision():
+            products_processing.close()
+            products_processing.save()
+            reversion.set_user(request.user)
+            reversion.set_comment("Processing closed")
 
         return _redirect_to_with_success(request, change_url, object_id,
                                         "Entry has been closed. Products quantities have been modified.")

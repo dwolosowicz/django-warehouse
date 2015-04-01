@@ -7,12 +7,13 @@ from .models import Warehouse, Product, Unit, ProductsProcessing, ProductProcess
 from .admin_mixins import ModedInlinesMixin, ReadOnlyEditFieldsMixin
 
 import reversion
+import re
 
 admin.site.register(Unit)
 
 
 @admin.register(Product)
-class ProductAdmin(ReadOnlyEditFieldsMixin, reversion.VersionAdmin):
+class ProductAdmin(ReadOnlyEditFieldsMixin, admin.ModelAdmin):
     fields = ('warehouses', 'name', 'price', 'quantity', 'unit')
     list_display = ('name', 'cost', 'amount', 'reservation_amount')
     list_editable = ('name',)

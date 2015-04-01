@@ -1,8 +1,9 @@
 from decimal import Context, Decimal
 
 from django.db import models
-from safedelete import safedelete_mixin_factory, SOFT_DELETE
 from django_extensions.db import fields
+
+import reversion
 
 class Warehouse(models.Model):
     name = models.CharField(max_length=255)
@@ -64,7 +65,7 @@ class ProductsProcessingManager(models.Manager):
         return set([(d['created'].year, d['created'].month) for d in ProductsProcessing.objects.values('created')])
 
     def __get_review(self, year, month, op_type):
-        return Product.objects.raw("SELECT p.id, p.name, SUM(ppn.quantity_change) AS `change` FROM warehouse_product AS p LEFT JOIN warehouse_productprocessingnode AS ppn ON ppn.product_id = p.id LEFT JOIN warehouse_productsprocessing AS pp ON pp.id = ppn.processing_id WHERE pp.type = %s AND YEAR(pp.created) = %s AND MONTH(pp.created) = %s GROUP BY p.name ORDER BY p.name ASC", [op_type, year, month])
+        return Product.objects.raw("SELECT p.id, p.name, SUM(ppn.quantity_change) AS `change` FROM warehouse_product AS p LEFT JOIN warehouse_productprocessingnode AS ppn ON ppn.product_id = p.id LEFT JOIN warehouse_productsprocessing AS pp ON pp.id = ppn.processing_id WHERE pp.closed = 1 AND pp.type = %s AND YEAR(pp.created) = %s AND MONTH(pp.created) = %s GROUP BY p.name ORDER BY p.name ASC", [op_type, year, month])
 
 
     def review_for_month(self, year, month):
@@ -149,6 +150,9 @@ class ProductProcessingNode(models.Model):
 
     created = fields.CreationDateTimeField()
     modified = fields.ModificationDateTimeField()
+
+    def __unicode(self):
+        return self.product.name
 
     def is_admitted(self):
         return self.processing.is_admission()
